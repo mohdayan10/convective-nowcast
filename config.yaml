@@ -1,0 +1,40 @@
+# Central configuration. Paths are relative to the repo root.
+paths:
+  store: store                 # large data, never committed
+  raw: store/raw
+  events: store/raw/events     # one .npz per SEVIR event
+  h5index: store/raw/h5index   # cached dataset offsets per SEVIR file
+  results: eval/results        # every number the UI/docs show comes from here
+  replay: replay_packages
+
+sevir:
+  base_url: https://sevir.s3.amazonaws.com/data/
+  catalog_url: https://sevir.s3.amazonaws.com/CATALOG.csv
+  image_types: [vil, ir069, ir107, lght]
+  split_date: "2019-06-01"     # train < split, test >= split (brief rule 4)
+  n_train: 800
+  n_test: 200
+  dev_train: 60                # quick subset for pipeline development
+  dev_test: 20
+  severe_types: [Hail, Thunderstorm Wind, Flash Flood]
+  severe_weight: 3.0           # oversampling weight for severe storm-event types
+  seed: 26084
+  workers: 8                   # parallel range requests (link is ~1 MB/s aggregate)
+
+frames:
+  n: 49                        # 4 h at 5 min
+  step_min: 5
+  n_in: 13                     # 1 h of input
+  leads: [12, 36]              # 1 h and 3 h ahead
+
+grid:
+  size: 384                    # 1 km VIL grid
+  ir_size: 192                 # 2 km IR grid, upsampled for fusion only
+  lightning_sigma_px: 2.0
+
+verification:
+  # SEVIR VIL thresholds in 0-255 pixel units (Veillette et al. 2020);
+  # convert with pipeline.units.vil_to_kgm2 when kg/m² are needed.
+  vil_thresholds: [16, 74, 133, 160, 181, 219]
+  fss_scales_km: [1, 5, 15]
+  fss_thresholds: [74, 133]

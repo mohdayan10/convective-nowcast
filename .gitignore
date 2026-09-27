@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*:Zone.Identifier
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+store/
+replay_packages/*/
+.pytest_cache/
+frontend/public/offline/

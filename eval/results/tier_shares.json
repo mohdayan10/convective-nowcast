@@ -1,0 +1,15 @@
+{
+ "kind": "tier_shares",
+ "tier_source": "SIMULATED radar networks (M1 tier grid not available yet)",
+ "n_samples": 2000,
+ "pixel_share": {
+  "none": 0.4224127502441406,
+  "partial": 0.15838946872287327,
+  "full": 0.4191977810329861
+ },
+ "sample_source_counts": {
+  "rect": 420,
+  "simulated": 1199,
+  "none": 381
+ }
+}
