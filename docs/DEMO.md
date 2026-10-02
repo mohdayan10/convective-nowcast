@@ -135,7 +135,7 @@ All of these are read from files, and all are reproducible from the repo:
   taken away over the same 218 events. Mean CSI at 60 min 0.166 all sources,
   0.149 no radar, 0.121 satellite only; optical flow on the same denied input
   0.000, because with no radar there is nothing to extrapolate
-  (`eval/results/modes.json`). Forward pass 0.56 s per event, 10 MC-dropout
+  (`eval/results/modes.json`). Forward pass 0.59 s per event, 10 MC-dropout
   members over a 384 km tile on a GTX 1050 Ti.
 - **Track error** — the number that goes against the model, and it is on the
   validation screen: median centroid error at 60 min 36.9 km for the model

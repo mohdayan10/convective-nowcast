@@ -1,489 +1,481 @@
-# Video Script — SIH 26084: Convective Nowcasting (Team Deadlock)
+# Video script — SIH 26084, Deadlock Nowcast
 
-**Length:** about 18 minutes (cut Part 12 down to ~2 minutes for a short version) · **Speakers:** 1–3 (split the parts however you like)
-**How to read this:** 🎬 = what to show on screen. 🗣️ = what to say. Speak slowly; pause where there's a line break.
+**Length:** about 16 minutes at a calm pace. Part numbers are cut points — drop
+Parts 9, 11 and 12 for a 7-minute version and the demo still stands on its own.
 
-> **Before you record — checklist**
-> 1. Start the dashboard: `cd frontend && npx vite preview --port 4173`, open **http://localhost:4173** in a full-screen browser window (1920×1080 is best).
-> 2. Keep these ready in other tabs/windows: the GitHub repo, `docs/m2_alignment.png`, `docs/m4_masks.png`, `docs/m7_lineage.png`, and a terminal in the project folder.
-> 3. Numbers in Part 7 come from our **early 20-storm test**. If you re-run `make baselines` on the full test set before recording, read the new numbers from the dashboard's **Verification → Model skill** chart instead.
-> 4. The dashboard shows a **SYNTHETIC SCENARIO** badge. Always say so on camera (the script does this for you) — judges respect honesty.
-
----
-
-## Part 1 — The hook (0:00 – 0:45)
-
-🎬 Title card: *"Convective Nowcasting for Thunderstorms, Hail & Cloudbursts — SIH 26084 — Team Deadlock (ID 156116)"*. Then the dashboard map, playing.
-
-🗣️
-Every year in India, thunderstorms, hailstorms, sudden violent winds and cloudbursts kill people and destroy crops, roads and homes.
-
-The problem is not that we don't have weather models. The problem is **speed and size**.
-
-These storms are born in **minutes**, and they are only **a few kilometres wide**. The big national weather models look at the atmosphere in boxes that are too large, and they take hours to run. By the time they finish, the storm has already formed, hit and gone.
-
-So a district officer, an airport, or a farmer often gets **no useful warning at all**.
-
-We are Team Deadlock, and this is our answer to problem statement **26084** from the **Ministry of Earth Sciences and NCMRWF**.
+**How to read this:** 🎬 is what to show. 🗣️ is what to say. A blank line is a
+breath. Numbers in bold are read from files in the repo and are listed with their
+source, so if you re-run anything before recording, read the new number off the
+screen instead of this page.
 
 ---
 
-## Part 2 — What the problem asks for (0:45 – 1:45)
+## Before you record
 
-🎬 A simple slide with the requirements as a checklist.
-
-🗣️
-NCMRWF asked for a system that does five things:
-
-**One** — watch the atmosphere *right now* using three sources: **Doppler weather radar**, the **INSAT satellite**, and the **ground lightning network**.
-
-**Two** — automatically detect a storm **as it is being born**.
-
-**Three** — forecast **four hazards**: lightning, hail, downbursts — those are sudden crushing downward winds — and cloudbursts.
-
-**Four** — do this for the **next 0 to 6 hours**, at **1 to 3 kilometre** detail.
-
-**Five** — show it all on a **live map** with **countdowns** to when the storm will arrive, for three kinds of users: **aviation**, **district administration**, and **farmers**.
-
-That is what we built towards. Let me show you how.
+1. `docker compose up --build`, then open **http://localhost:8000** full screen at
+   1680×950 or wider.
+2. The console opens on the **relocated Karnataka package** (`S852920-IN-KA`).
+   Check the status bar says `Relocated grid`.
+3. Set the transport to **20×** and leave the replay paused at the start.
+4. Have a second window on the repo, and a terminal in the project folder.
+5. Read the honesty line out loud at least twice in the video. It is the strongest
+   thing you have: **every number on screen comes from a file in the repo, and
+   anything not computed says so instead of showing a number.**
 
 ---
 
-## Part 3 — Our idea in one line, and what makes it different (1:45 – 3:00)
+## Part 1 — The problem (0:00 – 1:10)
 
-🎬 Slide: the one-line pitch, then the five differentiators appearing one by one.
+🎬 Title card, then the console on `NOW` with the storm over Karnataka, paused.
 
 🗣️
-Here is our idea in one line:
+Thunderstorms, hail, sudden violent winds and cloudbursts kill people in India
+every year. The difficulty is not that we have no weather models — it is that
+these storms are born in minutes and are only a few kilometres across.
 
-> *India's deadliest cloudbursts happen where radar can't see. Our system fuses radar, satellite and lightning, keeps forecasting when radar is missing, and turns forecasts into clear, explainable warnings — with every number checked.*
+A national forecast model runs on a grid too coarse to see one, and takes hours
+to produce. By the time it finishes, the storm has formed, hit, and gone.
 
-Most teams will build "radar plus satellite plus deep learning, put it on a map". We focused on the problems **India actually has**:
+So the people who need the warning — a district officer, an airport, a farmer —
+often get nothing useful at all.
 
-**First — it works when radar is missing.** India has radar gaps, especially in the Himalayas and the North-East, which is exactly where cloudbursts are deadliest. Our model knows, for every single pixel, whether radar can see there fully, partly, or not at all — and it keeps forecasting either way.
+This is problem statement **26084** from the Ministry of Earth Sciences. It asks
+for a nowcast: zero to six hours ahead, one to three kilometres across, built by
+fusing radar, satellite and lightning.
 
-**Second — terrain-aware cloudbursts.** Himalayan cloudbursts happen when moist air is pushed up mountain slopes. Our model can use terrain to catch that.
-
-**Third — warnings that name what is at risk.** Not "grid cell 4-5-2", but "hail at the airport in 25 to 40 minutes".
-
-**Fourth — every alert explains *why*.** An officer can check our reasoning against their own judgement.
-
-**Fifth — honesty.** Every number we show comes from evaluation code. If our model loses to a simpler method somewhere, we show that too.
+We are Team Deadlock. This is what we built, and — just as important — this is
+what we measured, including the places where our model loses.
 
 ---
 
-## Part 4 — How the system works, end to end (3:00 – 4:15)
+## Part 2 — What this is, honestly (1:10 – 2:10)
 
-🎬 Architecture slide: a left-to-right chain of boxes.
-`Data in → Clean & align → Find storms & storm births → ML forecast → Four hazards → Alerts → Dashboard`, with an arrow looping back: `Verification → Recalibrate`.
+🎬 Click `OVW · Overview`. Let the relocation banner fill the frame.
 
 🗣️
-Think of our system as a pipeline — a chain of steps.
+Start with what you are looking at, because it decides how much to trust
+everything after it.
 
-**Step 1, data in.** Radar, satellite and lightning arrive every 5 minutes.
+This is a **replay console**. One recorded storm, played back from files that
+were computed in advance. The browser does no forecasting at all — the only
+arithmetic it does is subtracting two clocks for the countdowns.
 
-**Step 2, clean and align.** Each source has a different grid and different units. We put everything on **one common map grid**, so pixel number 100 in the radar image is the same place as pixel number 100 in the satellite image.
+The storm is a real event: a thunderstorm-wind case from the **SEVIR** dataset,
+17 August 2019, four hours of radar at five-minute steps on a 384-kilometre tile.
 
-**Step 3, find storms.** We draw an outline around every storm, give it an ID, and follow it over time. We also watch for storms that are **about to be born**.
+But read this banner, because a judge will ask. That storm happened over the
+United States. We have georeferenced its grid onto **Karnataka**, centred on
+Bengaluru, so the console can be read against Indian terrain and Indian cities.
 
-**Step 4, forecast.** A deep-learning model predicts what the radar and lightning will look like over the next hour.
+What moved is the georeference, and with it the named locations — and those are
+the **real** Bengaluru, Mysuru, Mandya, Tumakuru, Salem, Vellore and Kempegowda
+airport, because they come from the same global exposure tables.
 
-**Step 5, hazards.** From that forecast we work out the four hazards.
+What did not move: the forecast, the storm cells, the arrival windows, every
+metric, and the timestamps. All of those are computed on the grid, and the grid
+is unchanged. No number on any screen changes when we move it.
 
-**Step 6, alerts.** We turn hazards into warnings for each type of user, in standard formats, and in three languages.
+We are badged `RELOCATED` and we say this on the opening screen, because the
+honest version of "we have no Indian radar data yet" is to show you exactly
+that.
 
-**Step 7, the dashboard.** Everything shows up on an interactive map.
+🎬 Scroll to **What this console shows** and **What is not computed**.
 
-And there's a loop at the end: after the event, we compare what we predicted with what actually happened, and use that to **tune the system**.
-
-All of this is written in **Python** for the science side — PyTorch, pysteps, LightGBM — and **React with MapLibre** for the dashboard. The code is on GitHub.
-
-🎬 Briefly show the GitHub repo page and folder list.
+🗣️
+These two lists are generated from the package itself, not typed by hand. On the
+left, what exists. On the right, what does not — and the command that would fill
+it. You will see that second list again on the validation screen.
 
 ---
 
-## Part 5 — The data: where we learn from (4:15 – 5:45)
+## Part 3 — The main console, and the two required outputs (2:10 – 4:00)
 
-🎬 Show `docs/m2_alignment.png` (four panels: radar, two satellite images, lightning).
+🎬 Click `NOW · Live nowcast`. Press play at 20×.
 
 🗣️
-To train a forecasting model you need **years of storms** where radar, satellite and lightning are all recorded **together and aligned**.
+This is the operational screen, and it carries the two outputs the problem
+statement demands: a **GIS hazard map**, and **countdowns to named locations**.
 
-India's archives exist, but getting them needs data agreements — we've started that through **MOSDAC**. So to build and test right now, we use **SEVIR** — a public dataset from MIT with more than **10,000 real storm events** from the USA. Each event is a 384 by 384 kilometre square, 4 hours long, one picture every 5 minutes, with radar, satellite and lightning together.
+🎬 Point at the map.
 
-We selected **1,000 events** — 800 for training, 200 for testing. And we followed a strict rule: everything **before June 2019 is for training**, everything **after is for testing**. The model never sees the test storms. We also picked **extra severe storms** — hail, damaging winds and flash floods — so the model learns the dangerous cases.
+🗣️
+Two radar layers are drawn here, named apart in the panel on the left.
 
-Here's one engineering detail we're proud of. SEVIR's files are **4 to 16 gigabytes each**, and our internet connection was about **1 megabyte per second**. Downloading whole files would take days. So we worked out exactly **where each storm sits inside the file** and downloaded **only those bytes** — about 14 megabytes per storm instead of gigabytes.
+Underneath is the **observed radar** at the replay clock — sharp, cellular, what
+the radar actually sees. Over it is the **model's forecast** at the lead on the
+transport bar — smoother, because that is genuinely what the model produces. We
+do not sharpen it. The difference between the two is the thing a forecaster is
+judging, so we show both.
 
-🎬 Point at the four panels of the alignment image.
+Both use the same reflectivity heat ramp: dark teal for a weak echo, through
+green and yellow, to deep red in a core.
 
-We also checked the data very carefully. Look here — the yellow dots are lightning strikes, and they sit **exactly on top of the strongest radar cores**. That proves our four data sources are aligned. While checking, we even **caught an 8-kilometre error** in how the dataset stores lightning positions, and fixed it by using each flash's real latitude and longitude.
+🎬 Point at the hazard strip along the top.
 
-Finally, we linked every storm to the official **US Storm Events reports** — the real record of where hail fell and how strong the wind was. **All 393** storm events matched. That gives us true answers to learn hail and wind from.
+🗣️
+The four hazard parameters the statement names. **Extreme rainfall** as peak
+forecast accumulation in millimetres per hour. **Severe wind**. **Lightning
+density**. **Hail**.
+
+Severe wind carries the word "proxy" on its face, and hovering tells you why: we
+detect it as a collapse of the vertically integrated liquid core, not from
+Doppler velocity, because this dataset has no Doppler. That is a weaker method
+and we label it everywhere it appears.
+
+🎬 Point at the countdowns on the right as they tick.
+
+🗣️
+Here are the countdowns — Salem, Bengaluru, the airport, Tumakuru — ticking down
+to arrival, each with a window and a confidence.
+
+The confidence is not a guess. For each storm cell we take its tracked motion,
+perturb the speed and direction across an ensemble, and see what fraction of
+those perturbed storms reach the location — and when. That gives the window and
+the probability. The browser only subtracts the clock.
+
+🎬 Click a storm cell on the map.
+
+🗣️
+Click a cell and you get its identity: how long it has been tracked, its peak
+intensity, its footprint, the area of its core, and the radar coverage where it
+sits. Cells keep their identity through merges and splits, so an alert raised
+for a storm stays attached to that storm.
+
+🎬 Scroll the right rail to the alert feed, open one alert.
+
+🗣️
+Alerts are issued per audience, because the right threshold is not the same for
+everyone. Aviation is tuned to miss as little as possible. A district officer is
+tuned against false alarms, because evacuating a town on a false alarm costs
+real trust.
+
+Open one and you get the **CAP 1.2 XML** — the international alerting format —
+and an SMS in **English, Hindi and Telugu**. In this replay **8** alerts were
+issued, **5** hits and **3** false alarms, median lead **15 minutes**.
 
 ---
 
-## Part 6 — Radar gaps: teaching the model to work without radar (5:45 – 6:45)
+## Part 4 — The differentiator: forecasting where radar cannot see (4:00 – 5:30)
 
-🎬 Show `docs/m4_masks.png` (top row: real radar; middle: coverage map; bottom: what the model sees).
+🎬 Point at the coverage block in the left panel, then switch **No radar**, then
+**Satellite only**, then back to **All sources**.
 
 🗣️
-Now our first big idea: **radar gaps**.
+This is the part I most want you to see, because it is our answer to a real
+Indian problem: the Doppler radar network does not cover the whole country.
 
-A radar beam goes out in a straight line, but the Earth curves away underneath it. So far from the radar, the beam is **too high** to see the bottom of a storm. And mountains **block** the beam completely in some directions.
+The panel says **39%** of this tile has full radar, **29%** partial, **31%**
+none. Those tiers are simulated — we never received the radar-overlap grid — and
+every panel that uses them says so.
 
-So we sort every pixel into three levels:
-**green — full coverage**, **amber — partial coverage**, where the beam is too high, and **red — no coverage at all**.
+Now watch the switch. **No radar** is not the same forecast restyled. It is a
+separate forward pass with the radar input actually taken away, through the
+modality-dropout path the model was trained on. **Satellite only** removes the
+lightning channel as well.
 
-🎬 Point at the three rows.
+🎬 Let the transport counters change as you switch.
 
-The top row is the real radar. The middle row is a coverage map. The bottom row is what our model is allowed to see — radar is **removed** in the red areas, and **weakened** in the amber areas.
+🗣️
+And here is the measurement, over the whole **218-event** held-out test split,
+not just this storm.
 
-We train the model on thousands of these, so it learns to **fill the gaps using satellite and lightning**.
+Mean critical success index at sixty minutes: **0.166** with every source,
+**0.149** with the radar denied — about **90%** of the skill kept — and
+**0.121** from satellite alone.
 
-To be clear and honest: right now these coverage maps are **simulated** from real radar physics — beam height and Earth's curve — because the tool that computes India's real coverage map is still being finalised. When it's ready, it plugs straight into the same place.
+Now the number that matters. Optical flow, the standard extrapolation baseline,
+scores **0.000** on that same denied input. With no radar there is nothing to
+extrapolate. Whatever skill the model keeps there comes from satellite and
+lightning, and that is the gap this project is aimed at.
 
 ---
 
-## Part 7 — The forecast, and how we measure it (6:45 – 8:15)
+## Part 5 — Storm relief in three dimensions (5:30 – 6:30)
 
-🎬 Open the dashboard → **Verification** tab → scroll to **Model skill**. Hover over the chart.
+🎬 Click `3DX · 3D storm relief`. Click **Orbit**. Let it turn.
 
 🗣️
-Before building a fancy AI model, you need something to **beat**. We built three standard methods that forecasters already use:
+The same storm seen as a body. This is the observed liquid-water field drawn in
+relief — thirty translucent shells, each raised to its own intensity level, so
+they compose into a mass: pale where the cloud is thin, warm and dense through
+the cores.
 
-**Persistence** — just assume the storm stays exactly where it is.
-**Optical flow** — work out which way the storm is moving and slide it forward.
-**S-PROG** — a smarter version that also lets small storm details fade out realistically over time.
+Read the caption, because it is a limit, not a decoration. **Height is a drawing
+scale, not cloud-top altitude.** SEVIR gives vertically integrated liquid — one
+number per column, no vertical slices. So an altitude-slice inspector would need
+a radar volume we do not have, and rather than fake one, the panel on the left
+explains exactly what is missing and what would fill it.
 
-To score them, we use **CSI — Critical Success Index**. In simple words: out of all the places where either the forecast or reality had a storm, what fraction did the forecast get right? 1 is perfect, 0 is useless.
-
-🎬 Hover at 30 minutes.
-
-On our first test of 20 storms, at 30 minutes ahead, S-PROG scores about **0.37**, optical flow **0.33**, and persistence only **0.23**. You can see every method gets worse as we look further ahead — that's why short-range forecasting is hard.
-
-Our own model is a **U-Net** — a type of neural network that's very good with images. It looks at the **last hour** of radar, two satellite channels, lightning, and the coverage map, and it predicts the **next hour** of radar **and** lightning together.
-
-We also run it **10 times with small random changes** — this is called an **ensemble**. If all 10 runs agree, we're confident. If they disagree, we're not — and that turns into a **probability**, not just a yes or no.
-
-Because we trained on a small laptop graphics card, we run the model at **2-kilometre** detail — still inside the 1-to-3 km requirement.
-
-🎬 (Only if model results exist in the chart:) Point at the ML line.
-*(If the ML line isn't there yet, say:)* The model's final test results will appear on this same chart, from the same evaluation code — nothing is typed in by hand.
+The camera orbits; the storm itself advances with the replay clock every five
+minutes. Nothing between those steps is invented.
 
 ---
 
-## Part 8 — Tracking storms and catching them being born (8:15 – 9:30)
+## Part 6 — Forecast timeline and the honest decay (6:30 – 7:15)
 
-🎬 Show `docs/m7_lineage.png`.
+🎬 Click `FTM · Forecast timeline`.
 
 🗣️
-Next: **tracking**. We draw an outline around every storm and give it an ID. The hard part is when storms **merge** into one, or **split** into two. Many systems lose track at exactly that moment — which is often the most dangerous moment.
+Every lead time the model produces, side by side, with the measured skill at
+each one.
 
-We based our tracker on **TITAN**, a well-known method, and extended it: when storms merge or split, the **main storm keeps its ID**. Here, storm number 11 keeps the same ID for almost **four hours**, even as smaller cells split off and join back — those are the orange lines. That matters because an alert raised for storm 11 **stays attached** to the storm that actually arrives.
+Two things to notice, and both are losses we chose to show.
 
-🎬 Switch to the dashboard, Operations tab. Click **Demo**, go to step 2 ("Storm birth detected").
+Skill falls as lead time grows — that is physics, every nowcast does this.
 
-Now **storm birth** — we call it **convective initiation**. Before a storm shows up on radar, the satellite sees clouds **growing upward fast** — their tops get very cold, very quickly. Our detector looks for exactly that: cloud-top cooling, the coldest cloud tops, cloud tops pushing through the top of the weather layer, and the first lightning.
-
-🎬 Point at the CI ring and the "Why" bars on the right.
-
-Here the ring is the storm-birth score. And on the right is the **"why"** — the top reasons, like "cloud-top cooling" and "lightning onset". An officer can check each one.
-
-We also test this detector with the satellite made **coarser and slower** — like India's INSAT, which scans every 15 to 30 minutes instead of every 5 — so we know how it will behave on Indian data.
+And past sixty minutes the bar is hatched and the panel says "no forecast". We
+trained to sixty minutes. The problem statement asks for six hours. We do not
+have the three-to-six hour blend, so rather than drawing a line that fades into
+nothing, we show nothing and name what it would take: an NWP blend we have no
+access to yet.
 
 ---
 
-## Part 9 — The four hazards (9:30 – 10:45)
+## Part 7 — Data fusion (7:15 – 8:30)
 
-🎬 Dashboard: Demo step 4 ("Four hazards"). Turn on the hazard layers on the left. Drag the **Lead** slider.
+🎬 Click `FUS · Data fusion`.
 
 🗣️
-Now the four hazards the problem asked for.
+The three input rasters at the top are not an illustration of fusion. They are
+the actual arrays the network was fed for this analysis time: **radar** liquid
+water, **satellite** cloud-top temperature, and **lightning** flash density.
 
-**Lightning** — comes straight from our model's lightning output: how many flashes per square kilometre to expect.
+Below them, the model's outputs — the heads it produces. The two that were never
+trained are marked "not trained" rather than being given a plausible percentage.
 
-**Hail** — a machine-learning classifier looks at each storm: how intense its core is, how cold its cloud top is, how fast its lightning is increasing. It learned from real hail reports.
+🎬 Scroll to **Take a source away** and the two tables.
 
-**Downburst** — see this **PROXY** badge? Measuring wind directly needs Doppler radar wind data, which our training data doesn't have. So for now we use a well-known warning sign: a very strong storm core that **suddenly collapses** — the falling air is what hits the ground. It's clearly labelled as a proxy. In the final version, we'll use Doppler wind from IMD radars.
+🗣️
+And here is the fusion evidence, which we split into two questions because they
+are genuinely different.
 
-**Cloudburst** — India defines a cloudburst as about **100 millimetres of rain in one hour** over roughly 20 to 30 square kilometres. We convert our forecast into rain rate using a standard physics formula, add it up over an hour and over a 25-square-kilometre area, and give the **probability** of crossing 100 millimetres. We also state the uncertainty of that formula openly.
+This table scores the same forecast over the pixels radar can and cannot see —
+full **0.174**, partial **0.185**, no radar **0.155**. Notice the ordering is not
+clean: partial scores above full. We do not hide that; it is why we call it a
+coverage breakdown rather than proof.
 
-🎬 Drag the lead slider past 3 hours; point at the hatched "NCUM blend — not validated" section.
-
-The problem asks for **0 to 6 hours**. Our ML model is strongest up to about 3 hours. Beyond that, the plan is to **blend** smoothly into NCMRWF's own NCUM weather model. We've marked that part as "**designed, not validated**", because our training data is only 4 hours long and we refuse to show numbers we haven't earned.
+The table below it answers the other question: the model re-run with the input
+actually removed, over the same 218 events — the **0.166 / 0.149 / 0.121** we
+just saw, with extrapolation at zero. That one is the evidence for fusion.
 
 ---
 
-## Part 10 — Confidence you can trust (10:45 – 11:15)
+## Part 8 — Explainability (8:30 – 9:45)
 
-🎬 Show `docs/m8_reliability.png` if it exists; otherwise stay on the dashboard.
+🎬 Click `XAI · Explain`. Pick the strongest cell.
 
 🗣️
-A forecast that says "70 percent" should be right about 70 percent of the time. We check this with **reliability diagrams**, separately for each hazard and for each level of radar coverage, and we **correct** any over- or under-confidence using a method called **isotonic regression**. So when we say 70 percent, it means 70 percent.
+Judges ask "why did it say that", so here is the answer for a specific cell.
+
+These are **exact SHAP values** from the gradient-boosted hail and downburst
+models — not an illustration shaped like an explanation. The contributions sum
+with the base value to the model's own log-odds, which means you can add them up
+and arrive at precisely the probability shown on the map. On this cell, lightning
+rate and cloud-top temperature carry the decision.
+
+🎬 Scroll to **Convective initiation**.
+
+🗣️
+Initiation — spotting a storm before there is any echo to track. The model sees
+satellite, not radar, which is the point: it can flag a growing cloud before
+radar has anything to find. Median lead before first echo, **45 minutes**.
+
+And the honest half: at the operating threshold its critical success index is
+**0.055** with a false-alarm ratio of **0.90**. It finds storms early and it
+cries wolf. We report it as a research signal, not as an alert source, and the
+validation screen says the same.
+
+🎬 Scroll to the per-source ablation.
+
+🗣️
+And the same removal again, for this one event and this one analysis time, with
+a link through to the split-wide measurement. One event is a demonstration. The
+split is the evidence. We keep them labelled apart.
 
 ---
 
-## Part 11 — Alerts for real people (11:15 – 12:45)
+## Part 9 — Storm replay: the model against what happened (9:45 – 11:00)
 
-🎬 Dashboard: Demo step 6 ("One storm, three audiences"). Click through **Aviation / District / Farmers** tabs.
+🎬 Click `REP · Storm replay`. Drag the divider slowly.
 
 🗣️
-A forecast only saves lives when the **right person** gets a **clear message** at the **right time**.
+This is the most persuasive screen, and the hardest on us.
 
-Different users need different things:
-**Aviation** can't afford to miss a hailstorm over a runway, so their alerts fire **earlier**, at a lower threshold — a few extra false alarms are acceptable.
-**District officers and farmers** stop trusting alerts if there are too many false alarms, so their alerts fire only when we're **more confident**.
+Same valid time. On the left, what the model forecast. On the right, what the
+radar actually observed. Same grid, same colour ramp, same scale — so this is a
+comparison of fields, not of two different renderings.
 
-We tune these thresholds on data, and we measure how many alerts each group gets and how many were false.
+Drag the divider. The model has the position and the shape of the system. It is
+smoother and weaker than the observation — and the next panel measures exactly
+that rather than letting you squint at it.
 
-🎬 Point at an alert card: window, probability, the "why" rows, and the baseline line.
+🎬 Read the **Model against observed** panel.
 
-Every alert card shows: **what** hazard, **where**, **when** — as a time window like "20 to 50 minutes", never a fake-precise single number — the **probability**, the **reasons**, and even what a simple forecasting method would have done: here it says the baseline warned **10 minutes later** than us.
+🗣️
+Arrival error, median **0 minutes**, median absolute **0 minutes**, with **71%**
+of observed arrivals falling inside the forecast window, over **24** site
+forecasts on this event.
 
-We also rank alerts by **impact**: hazard probability, times the chance it arrives, times **what is exposed** — an airport, a city of a million people, a farm cluster.
-
-🎬 Click **CAP XML**, then **SMS**, switch to हिन्दी and తెలుగు.
-
-Alerts come out as **CAP** — the international Common Alerting Protocol that India's national alert system, **SACHET**, uses — so they can plug straight into existing channels. And as SMS in **English, Hindi and Telugu**. The Hindi and Telugu are marked for review by native speakers before any real use.
+Below it, track error: how far the forecast put the storm from where it went,
+and beside it the ratio of forecast cell area to observed. That ratio is the
+whole story of this model's weakness, and it leads straight into the next
+screen.
 
 ---
 
-## Part 12 — The full dashboard tour, feature by feature (12:45 – 17:00)
+## Part 10 — Validation, including where we lose (11:00 – 13:30)
 
-> Take this part slowly — it's where judges see everything working. Each block below is one feature: do the 🎬 action, then say the 🗣️ line.
-
-### 12a. The honesty badges and the top bar
-
-🎬 Point at the top bar: clock, **REPLAY** and **SYNTHETIC SCENARIO** badges.
+🎬 Click `VAL · Validation`. Start at the banner.
 
 🗣️
-First, notice these badges. **REPLAY** means we're playing back recorded time, not a live feed. **SYNTHETIC SCENARIO** means this storm day is **made up, over real places** — Dehradun, Rishikesh, Jolly Grant Airport, the NH-7 Char Dham route. We built it so we could design and test the whole experience before our model runs on Indian data. Everything on screen — alerts, countdowns, scores — is **calculated** from that scenario, never typed in.
+This screen is why I would back this project over a prettier one.
 
-The big clock shows the replay time in IST. There are two pages: **Operations**, which is the live control-room view, and **Verification**, where we check how well we did.
+It opens by separating what is measured from what is not. Everything below is
+measured over **218 held-out events**, split by date, so no event we trained on
+appears here.
 
-### 12b. The map and its layers
-
-🎬 On the left panel, turn **Satellite IR**, **Radar VIL** and **Lightning** on and off one at a time. Then the three hazard layers.
-
-🗣️
-The map in the middle shows real terrain shading, so you can see the Himalayan valleys the storms move through.
-
-On the left are the **layers**:
-**Satellite IR** — shows cloud tops; the whiter, the colder and taller the cloud.
-**Radar VIL** — shows how much water and ice is in each storm; brighter means stronger.
-**Lightning** — each yellow dot is a real strike in the last 10 minutes. When we look into the future, it becomes a **forecast lightning density** instead.
-
-Below that are the **hazard layers** — hail, downburst and cloudburst. The shading is the **probability**, and the solid line marks where the probability crosses **50 percent** — a clear "danger zone" outline. Each layer has its own colour key with units, so nothing is guesswork.
-
-We chose the hazard colours carefully: we **tested them for colour-blindness**, and changed hail to magenta because the original purple was nearly impossible to tell apart from the cloudburst blue.
-
-🎬 Move the mouse slowly over a storm.
-
-And if you **hover anywhere**, a small box shows the exact numbers at that spot — radar strength, cloud-top temperature, lightning, and the probability of each hazard.
-
-### 12c. Storms, tracks and storm births on the map
-
-🎬 Point at a white storm ID chip, its solid past track, the dashed forecast track and the faint cone. Then point at a green CI ring.
+🎬 Scroll to the skill chart.
 
 🗣️
-Every storm has a **white ID tag**. If it came from a merge, the tag shows its parents — like "27, from 14 and 19".
+Mean skill against three extrapolation baselines — persistence, optical flow and
+S-PROG. At sixty minutes: model **0.166**, S-PROG **0.125**, optical flow
+**0.115**, persistence **0.094**.
 
-The **solid line** behind a storm is where it has been in the last hour. The **dashed line** is where we think it's going in the next hour, with a dot every 10 minutes, and the **faint cone** around it shows our uncertainty — it gets wider the further ahead we look, because the future is less certain.
+Now look at five minutes, and read it out loud, because the page does.
+S-PROG **0.370**, optical flow **0.360**, model **0.311**. **We lose below about
+twenty minutes.** A sharp echo moved along a motion field beats a learned model
+at very short lead. We say that on the page rather than cropping the chart.
 
-These **green rings** are **storm births** — clouds the satellite says are about to become storms, before radar sees anything. The ring fills up as the score rises, and it pulses once it crosses 50.
-
-Places at risk — the airport, district headquarters, towns, the pilgrimage route and farm clusters — are marked with icons. When a place has an active alert, its icon gets a **pulsing ring** in the hazard's colour.
-
-### 12d. The two time sliders
-
-🎬 Press **Play**, change speed to **2×**, pause. Drag the **Replay** slider. Then drag the **Lead** slider to 30 min, 2 h, and 4 h. Point at the "Valid" time on the right and the chip at the top-left of the map.
-
-🗣️
-At the bottom are two sliders.
-
-The **Replay** slider moves through the day. You can press play, pause, step forward and back five minutes at a time, and choose 1, 2 or 4 times speed. The little **diamonds** are key moments — a storm being born, a first radar echo, a merge, a split — and the **coloured ticks** are alerts being issued, in each hazard's colour.
-
-The **Lead** slider looks **into the future** — from now up to 6 hours ahead. The first half, up to 3 hours, is our **ML forecast**. The striped second half is where we'd **blend into NCMRWF's NCUM model** — and it's labelled "not validated", because we won't claim numbers we haven't tested.
-
-On the right, **"Valid"** shows exactly what time the map is showing, and the chip on the map always says whether you're looking at **observed** reality or a **forecast** — so no one ever confuses the two.
-
-For operators, there are keyboard shortcuts too: space to play or pause, arrow keys to step, and square brackets to move the forecast lead.
-
-### 12e. No-radar modes and the terrain switch
-
-🎬 Switch the top-right control: **All sources → No radar → Satellite only**. Point at the yellow banner on the map. Then on the left, switch **Terrain features** off and on.
+🎬 Scroll to **Reliability · calibration**.
 
 🗣️
-Up here, you can switch between **all sources**, **no radar**, and **satellite only**. Watch: the forecast keeps going. A yellow banner tells you which mode you're in, and without radar the radar layer is marked "estimated from satellite and lightning". The forecast gets less sharp and less certain — which is exactly what should happen — but it **doesn't stop**. That's the whole point for India's radar gaps.
+Reliability, per hazard and per coverage tier. Grey is the raw probability, teal
+is after an isotonic recalibration fitted on validation and judged on test.
+Brier score for the one-hour rainfall threshold goes **0.050 to 0.027** over
+full-radar pixels, and **0.126 to 0.039** where there is no radar.
 
-The **Terrain features** switch shows our terrain idea. With terrain on, the cloudburst on the Char Dham route is warned well ahead. Switch it off, and that same cloudburst is **missed**. That's the difference terrain makes.
+And then the sentence that matters: these curves **measure** the probabilities,
+they are not applied to them. The package ships raw model output, so a
+probability anywhere in this console is a ranking, not a frequency — and every
+screen that shows one says that.
 
-### 12f. The right-hand panel: Alerts, Arrivals, Storm
-
-🎬 **Alerts** tab: switch Aviation / District / Farmers; point at a HIT badge, a FALSE ALARM badge, and a MISSED card. **Arrivals** tab: click a place. **Storm** tab: click a storm, then a storm-birth ring.
-
-🗣️
-The right-hand panel has three tabs.
-
-**Alerts** — pick the audience at the top, and you see that group's threshold and which hazards they get. Active alerts are on top. As the replay reveals the truth, each alert gets a badge: **HIT** with how many minutes of warning it gave, or **FALSE ALARM**. If a hazard happened with **no** warning, it shows up honestly as a **MISSED** card.
-
-**Arrivals** — a card for every place, with its biggest threat and arrival window in large text. Underneath are four small **hazard strips** — one per hazard — showing the probability every 10 minutes for the next 3 hours, with a white box around the arrival window. Clicking a card highlights that place on the map.
-
-**Storm** — click any storm and you get its **vital signs**: strength and whether it's growing or collapsing, speed and direction, cloud-top temperature, and lightning flash rate compared with 10 minutes ago. Then the chance of each hazard in the next 30 minutes, its **family tree** of merges and splits, and its **origin** — for example, "storm birth flagged at 12:40, first radar echo at 13:00: 20 minutes before radar."
-
-Click a **storm-birth ring** instead, and you see the birth score as a gauge, a small chart of how the score rose over time, and the reasons behind it.
-
-### 12g. The Verification page
-
-🎬 Click **Verification**. Switch the audience chips. Scroll to **Model skill**, change the **Metric** dropdown, hover over the chart, and open **Table view**.
+🎬 Scroll to **Skill with the radar taken away**, then **Object track error**.
 
 🗣️
-The **Verification** page is our report card.
+Radar-denied skill, which we just saw.
 
-The top table scores every alert from the full replay — hits, misses, false alarms, and three standard scores:
-**POD** — out of all real events, how many did we warn about;
-**FAR** — out of all our warnings, how many were false;
-**CSI** — both combined.
-It also shows the **median warning time**, and compares every mode — all sources, no radar, satellite only, terrain off — against a simple baseline. Because this part uses the synthetic day, it's labelled as a demo of the checking process, **not** as proof of skill.
+And then this one, which goes against us. Median centroid error at sixty
+minutes: model **36.9 km**, optical flow **21.0 km**, persistence **38.1 km**.
+The model keeps only **45%** of cells as objects where optical flow keeps
+**95%**.
 
-Below that, **Model skill** is the real science. This chart is drawn **directly from our evaluation code's output files** — nothing is typed in. You can switch the score in this dropdown: average CSI, CSI at each storm-strength level, or the **Fractions Skill Score**, which gives credit for being "nearly right" at 1, 5 and 15 kilometres. Hover to read exact values, or open the **table view** for the raw numbers.
+The column beside it explains why: a matched forecast cell is about **five
+times** the area of the observed one. The model's field is smooth, so it merges
+neighbouring storms into one blob, and that blob's centre sits between the
+storms it merged. Part of that error is merging, not misplacement — and a
+weakened cell drops below the detection threshold and vanishes as an object even
+where its pixels still score well.
 
-### 12h. Built for the real world
+So: we beat the baselines on pixels and lose to them on object position. The page
+says so in those words. Nothing in the product depends on the model's object
+tracks — the cells, the arrival windows and the alerts are all tracked on
+observed radar.
 
-🎬 Click **Demo** and press **PageDown** a few times. Then copy the URL. Then show the dashboard at phone size (or on a phone) and open the **Layers** drawer. Optionally click **3D**.
-
-🗣️
-A few things we built for real use.
-
-**Guided demo mode** — one button walks through the whole story in 11 steps, with captions. Every number in the captions is calculated live. It even works with a presentation clicker.
-
-**Shareable links** — the web address remembers the exact time, forecast lead and mode. Send it to a colleague, and they see exactly what you see.
-
-**Fully offline** — the maps, place names and terrain are built into the app, because control rooms and hackathon venues don't always have good internet. We tested it with the internet completely switched off.
-
-**Works on a phone** — the layout rearranges itself, and the layers open from a button on the map.
-
-And a **3D view**, which tilts the map so you can see storms moving along the mountain valleys.
-
-### 12i. Built to be checked
-
-🎬 Terminal: run `make test`, then show the `Makefile` briefly.
+🎬 Scroll through latency, hazard models, initiation.
 
 🗣️
-Behind the dashboard, the science side is built to be **re-checked by anyone**. One command downloads the data, one runs the baselines, one checks the data alignment, and there are **automatic tests** for the scoring maths and the alert formats. All settings live in one config file, and all results are saved as files — which is how the dashboard can show only numbers that code actually produced.
+Inference latency, measured: **0.59 seconds** per event for ten ensemble members
+over a 384-kilometre tile on a GTX 1050 Ti. Not a target — a timing.
+
+Hail and downburst, scored per coverage tier. Downburst at full radar, area under
+curve **0.75**. Hail **0.72** — and with no radar hail falls to **0.50**, which
+is a coin toss, so we say the hail model needs radar and the console gates it.
 
 ---
 
-## Part 13 — Honest limitations (17:00 – 17:45)
+## Part 11 — Alerts that are tuned, not thresholded (13:30 – 14:15)
 
-🎬 Simple slide with bullet points.
+🎬 Back to `NOW`, the alert feed; or the alerts section on `VAL`.
 
 🗣️
-We want to be upfront about what's not finished yet:
+One number that shows the thinking. A fixed hail threshold across every audience
+issues **52** alerts to catch **6** real events. Tuned for a district officer,
+where a false alarm is expensive, that becomes **13** alerts — fewer catches,
+far fewer false alarms.
 
-- Our model is trained on **US data** for now. Moving to India needs **INSAT, IMD radar and IMD lightning data** — we've started the MOSDAC process.
-- The radar coverage maps are **simulated** until India's real coverage map is ready.
-- **Downburst** is a proxy until we have Doppler wind data.
-- **3 to 6 hours** is designed but **not yet validated**.
-- The dashboard's storm day is **synthetic**; the next step is to replay **real recorded storms** through the same screens.
-- Hindi and Telugu messages need **native-speaker review**.
-
-We'd rather show you exactly where we are than claim more than we've done.
+Same model, same storm, different cost of being wrong. That is what the audience
+tabs do.
 
 ---
 
-## Part 14 — What's next, and closing (17:45 – 18:30)
+## Part 12 — The system behind it (14:15 – 15:15)
 
-🎬 Roadmap slide, then back to the dashboard map for the final line.
+🎬 Click `SYS · System`.
 
 🗣️
-Our next steps:
-run the full model evaluation on all 200 test storms;
-replay real recorded storms in the dashboard;
-compute India's real radar coverage map;
-and, as soon as the data arrives, run a **real Indian storm** — ideally a Himalayan cloudburst — through the whole system.
+The pipeline, end to end: radar, satellite and lightning aligned onto one grid,
+fused by a tier-aware U-Net, probabilistic output over twelve lead frames,
+delivered as tracks, arrival times and uncertainty.
 
-To sum up:
-we built a system that watches radar, satellite and lightning together,
-spots storms **before radar sees them**,
-keeps forecasting **where radar is missing**,
-forecasts **all four hazards**,
-and turns them into **clear, explainable warnings** for the people who need them —
-with **every number checked**.
+The API that serves it — FastAPI, every endpoint the console actually calls,
+with a live round-trip time measured against this server, not a figure we typed.
 
-We're Team Deadlock. Thank you.
+And this session's event log. Nothing live, nothing sent anywhere.
 
-🎬 End card: team name, Team ID 156116, GitHub link.
+🎬 Switch briefly to a terminal, run `make test`.
+
+🗣️
+And the repository backs this. The evaluation files the console reads are written
+by commands in the Makefile — `make model`, `make modes`, `make track-skill`,
+`make calibrate` — so every number on every screen is reproducible from a clean
+checkout, with the event ids, the split date and the git commit recorded inside
+each file.
 
 ---
 
-### Quick glossary (if a teammate needs it while recording)
+## Part 13 — Close (15:15 – 16:00)
 
-| Word | Simple meaning |
+🎬 Back to `NOW`, playing, storm moving toward Bengaluru.
+
+🗣️
+To finish, what we claim and what we do not.
+
+We claim: a nowcast trained to one hour at one to three kilometres, fusing three
+sources, that keeps **90%** of its skill when the radar is taken away while
+extrapolation keeps none. Hazard probabilities per storm cell with exact
+attributions. Arrival countdowns with calibrated windows. Alerts in CAP and in
+three languages, tuned per audience. Every screen reproducible from files.
+
+We do not claim: an Indian case — the dataset is American and we show you where
+the grid was moved. Real coverage tiers — ours are simulated. Calibrated
+probabilities — we measured the calibration, we have not applied it. Anything
+beyond sixty minutes. And we do not claim to beat extrapolation at very short
+lead or at object position, because we measured both and we do not.
+
+A forecast you cannot check is not a forecast. Everything here can be checked,
+including the parts that are not flattering.
+
+Thank you.
+
+---
+
+## Numbers in this script, and where they come from
+
+| Claim | Source |
 |---|---|
-| Nowcasting | Forecasting the next few hours using what's happening right now |
-| VIL | How much water/ice a storm column holds — a radar measure of storm strength |
-| CSI | Score from 0 to 1: how well the forecast storm area matches the real one |
-| Ensemble | Running the model several times to see how sure it is |
-| Convective initiation (CI) | A new storm being born |
-| Downburst | A sudden, very strong downward wind from a collapsing storm |
-| Cloudburst | ~100 mm of rain in one hour over a small area |
-| CAP | Common Alerting Protocol — the standard alert format used by SACHET |
-| Proxy | An indirect sign used when the direct measurement isn't available |
+| Mean CSI at 60 min: 0.166 / 0.125 / 0.115 / 0.094 | `eval/results/model.json` |
+| At 5 min: S-PROG 0.370, optical flow 0.360, model 0.311 | `eval/results/model.json` |
+| Radar-denied 0.166 / 0.149 / 0.121, baseline 0.000 | `eval/results/modes.json` |
+| Per-tier 0.174 full, 0.185 partial, 0.155 none | `eval/results/model.json` |
+| Track error 36.9 / 21.0 / 38.1 km, 45% vs 95% matched, 5× area | `eval/results/track.json` |
+| Brier 0.050→0.027 full, 0.126→0.039 none | `eval/results/calibration.json` |
+| Latency 0.59 s per event | `eval/results/modes.json` |
+| Hail AUC 0.72 full, 0.50 no radar; downburst 0.75 | `eval/results/hazards.json` |
+| Initiation: 45 min median lead, CSI 0.055, FAR 0.90 | `eval/results/ci.json` |
+| Hail alerts 52 → 13 when tuned for districts | `eval/results/alerts.json` |
+| Coverage 39% full, 29% partial, 31% none | `replay_packages/S852920-IN-KA/meta.json` |
+| Arrival error 0 min median, 71% in window, 24 forecasts | `…/observed.json` |
+| 8 alerts, 5 hits, 3 false alarms, 15 min median lead | `…/verification.json` |
 
----
-
-## Appendix — Complete feature checklist
-
-Use this to make sure nothing is left out of the video (✅ = built, 🧪 = built, results still coming, ⏳ = planned).
-
-**Data and science pipeline**
-- ✅ SEVIR subset downloader — fetches only each storm's bytes, resumes if interrupted
-- ✅ Train/test split by date (before / after 1 June 2019), extra severe storms
-- ✅ Data alignment check (radar, two satellite channels, lightning on one grid)
-- ✅ Lightning placed from each flash's real lat/lon (fixed an 8 km offset)
-- ✅ Link to US Storm Events reports (hail size, wind speed) — 393/393 matched
-- ✅ Three baselines: persistence, optical flow, S-PROG
-- ✅ Scores: CSI, POD, FAR, bias, Fractions Skill Score, amplitude bias, per lead time
-- ✅ Radar coverage tiers (full / partial / none) — simulated until India's real map is ready
-- ✅ Tier-aware U-Net: radar + 2 satellite channels + lightning + coverage → next hour of radar and lightning
-- ✅ 10-run ensemble → probabilities
-- 🧪 Full test-set evaluation per lead time and per coverage tier
-- ✅ Storm tracking with IDs kept through merges and splits; family-tree image
-- ✅ Arrival windows from many slightly different storm paths
-- 🧪 Storm-birth detector (satellite-first, reasons via SHAP), also tested at INSAT-like 4 km and 15/30-min scans
-- 🧪 Hail and downburst (proxy) classifiers per coverage tier; downburst wind band
-- ✅ Cloudburst: rain-rate formula, 1-hour and 25 km² total, probability of ≥ 100 mm, stated uncertainty
-- ✅ Downburst hidden where there's no radar coverage (tier gating)
-- 🧪 Reliability check and isotonic correction per hazard and tier
-- ✅ Impact score = hazard × arrival × exposure (cities by population, airports)
-- 🧪 Audience thresholds tuned on data; alert count and false-alarm rate vs one fixed threshold
-- ✅ CAP 1.2 alerts with coverage and confidence text
-- ✅ SMS in English, Hindi, Telugu (Hindi/Telugu flagged for review)
-- ✅ Automatic tests, Makefile, single config file, results saved as files
-- ⏳ 3–6 h blend with NWP (designed, not validated)
-- ⏳ Real Indian storm case (needs MOSDAC/IMD data)
-- ⏳ Replay of real recorded storms in the dashboard + API server
-
-**Dashboard**
-- ✅ Honesty badges: REPLAY, SYNTHETIC SCENARIO, PROXY, US-SEVIR
-- ✅ Map with real terrain shading; layers for satellite, radar, lightning, hail, downburst, cloudburst
-- ✅ 50 % danger-zone outlines; colour keys with units; colour-blind-tested colours
-- ✅ Hover readout of exact values at any point
-- ✅ Storm ID tags with merge parents; past track, forecast track, uncertainty cone
-- ✅ Storm-birth rings that fill with the score
-- ✅ Places at risk with pulsing alert rings
-- ✅ Replay slider with play/pause/step/speed, event diamonds, alert ticks
-- ✅ Forecast-lead slider 0–6 h (ML 0–3 h, NWP blend 3–6 h marked "not validated")
-- ✅ Observed/forecast indicator and valid time
-- ✅ All sources / No radar / Satellite only switch with banner
-- ✅ Terrain features on/off (ablation)
-- ✅ Alerts tab: audiences, thresholds, window, probability, reasons, HIT / FALSE ALARM / MISSED, baseline comparison, CAP XML and SMS preview
-- ✅ Arrivals tab: countdown card per place with 3-hour hazard strips
-- ✅ Storm tab: vital signs, hazard chances, family tree, origin; storm-birth gauge and history chart
-- ✅ Verification page: replay scores per mode vs baseline; Model skill chart from evaluation files with metric switch, hover and table view
-- ✅ Guided demo mode (11 steps, clicker support)
-- ✅ Shareable links; keyboard shortcuts
-- ✅ Fully offline maps; phone layout with layers drawer; 3D view
-
+If you re-run any of these before recording, read the new value off the screen —
+the console always shows the file, never this page.
