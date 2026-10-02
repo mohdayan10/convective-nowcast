@@ -1,0 +1,17 @@
+# docker compose up  →  http://localhost:8000
+#
+# Serves the console and the replay packages. Rebuilding a package (which needs
+# the GPU, the SEVIR cache and torch) happens on the host:
+#     python -m export.build_replay --event <id>
+# The bind mounts below pick up new packages and evaluation results without a
+# rebuild; drop them to run the image entirely self-contained.
+
+services:
+  console:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./replay_packages:/app/replay_packages:ro
+      - ./eval/results:/app/eval/results:ro
+    restart: unless-stopped

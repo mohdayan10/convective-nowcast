@@ -1,0 +1,27 @@
+{
+ "events": [
+  {
+   "id": "S852920-IN-KA",
+   "event_type": "Thunderstorm Wind",
+   "start_utc": "2019-08-17T06:37:00+00:00",
+   "badges": [
+    "REPLAY",
+    "US-SEVIR",
+    "SIMULATED GAP",
+    "PROXY",
+    "RELOCATED"
+   ]
+  },
+  {
+   "id": "S852920",
+   "event_type": "Thunderstorm Wind",
+   "start_utc": "2019-08-17T06:37:00+00:00",
+   "badges": [
+    "REPLAY",
+    "US-SEVIR",
+    "SIMULATED GAP",
+    "PROXY"
+   ]
+  }
+ ]
+}

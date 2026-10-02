@@ -1,0 +1,103 @@
+{
+ "kind": "alerts",
+ "created_utc": "2026-10-01T14:22:17+00:00",
+ "severity": "hazard probability \u00d7 arrival probability \u00d7 exposure weight",
+ "exposure": "Natural Earth 10m populated places (log10 population / 6, clipped 0.2-1) and airports (1.0)",
+ "audiences": {
+  "aviation": {
+   "beta": 2.0,
+   "hazards": [
+    "lightning",
+    "hail",
+    "downburst"
+   ]
+  },
+  "district": {
+   "beta": 0.5,
+   "hazards": [
+    "hail",
+    "downburst",
+    "cloudburst",
+    "lightning"
+   ]
+  },
+  "farmers": {
+   "beta": 0.5,
+   "hazards": [
+    "hail",
+    "cloudburst",
+    "lightning"
+   ]
+  }
+ },
+ "lead_min": 15,
+ "by_hazard": {
+  "hail": {
+   "fixed": {
+    "threshold": 0.09999999999999999,
+    "alerts": 52,
+    "hits": 6,
+    "misses": 5,
+    "false_alarms": 46,
+    "pod": 0.5454545454545454,
+    "far": 0.8846153846153846
+   },
+   "aviation": {
+    "threshold": 0.07,
+    "alerts": 59,
+    "hits": 7,
+    "misses": 4,
+    "false_alarms": 52,
+    "pod": 0.6363636363636364,
+    "far": 0.8813559322033898
+   },
+   "district": {
+    "threshold": 0.63,
+    "alerts": 13,
+    "hits": 3,
+    "misses": 8,
+    "false_alarms": 10,
+    "pod": 0.2727272727272727,
+    "far": 0.7692307692307693
+   },
+   "farmers": {
+    "threshold": 0.63,
+    "alerts": 13,
+    "hits": 3,
+    "misses": 8,
+    "false_alarms": 10,
+    "pod": 0.2727272727272727,
+    "far": 0.7692307692307693
+   }
+  },
+  "downburst": {
+   "fixed": {
+    "threshold": 0.08,
+    "alerts": 112,
+    "hits": 47,
+    "misses": 2,
+    "false_alarms": 65,
+    "pod": 0.9591836734693877,
+    "far": 0.5803571428571429
+   },
+   "aviation": {
+    "threshold": 0.07,
+    "alerts": 115,
+    "hits": 47,
+    "misses": 2,
+    "false_alarms": 68,
+    "pod": 0.9591836734693877,
+    "far": 0.591304347826087
+   },
+   "district": {
+    "threshold": 0.5399999999999999,
+    "alerts": 47,
+    "hits": 28,
+    "misses": 21,
+    "false_alarms": 19,
+    "pod": 0.5714285714285714,
+    "far": 0.40425531914893614
+   }
+  }
+ }
+}

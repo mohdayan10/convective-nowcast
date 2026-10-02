@@ -1,0 +1,199 @@
+{
+ "kind": "hazards",
+ "created_utc": "2026-10-01T14:13:52+00:00",
+ "features": [
+  "vil_max",
+  "vil_p95",
+  "area_133",
+  "area_181",
+  "trend10",
+  "trend20",
+  "collapse20",
+  "ir_min",
+  "ot_index",
+  "wv_ir_max",
+  "lght_rate",
+  "lght_jump"
+ ],
+ "label_source": "NOAA Storm Events via SEVIR event_id (report at tile centre, frame 24)",
+ "negatives": "strongest cell of random events + cells of other storm-event types (noisy: no report linked)",
+ "not_used": "freezing level (needs NWP)",
+ "tier_source": "SIMULATED coverage; partial = ASSUMED scaling",
+ "hazards": {
+  "hail": {
+   "threshold": 0.09999999999999999,
+   "n_train_pos": 138,
+   "n_test_pos": 26,
+   "n_test": 305,
+   "by_tier_and_lead": {
+    "full|0": {
+     "tier": "full",
+     "lead_min": 0,
+     "n": 168,
+     "n_pos": 15,
+     "auc": 0.8047930283224403,
+     "brier": 0.10664310152036262,
+     "pod": 0.8666666666666667,
+     "far": 0.8142857142857143,
+     "csi": 0.18055555555555555,
+     "climatology_brier": 0.08131377551020406
+    },
+    "full|15": {
+     "tier": "full",
+     "lead_min": 15,
+     "n": 137,
+     "n_pos": 11,
+     "auc": 0.7200577200577201,
+     "brier": 0.11627817737922938,
+     "pod": 0.5454545454545454,
+     "far": 0.8846153846153846,
+     "csi": 0.10526315789473684,
+     "climatology_brier": 0.07384517022750281
+    },
+    "partial|0": {
+     "tier": "partial",
+     "lead_min": 0,
+     "n": 168,
+     "n_pos": 15,
+     "auc": 0.8100217864923748,
+     "brier": 0.09203724402278508,
+     "pod": 0.8666666666666667,
+     "far": 0.7678571428571429,
+     "csi": 0.22413793103448276,
+     "climatology_brier": 0.08131377551020406
+    },
+    "partial|15": {
+     "tier": "partial",
+     "lead_min": 15,
+     "n": 137,
+     "n_pos": 11,
+     "auc": 0.7207792207792207,
+     "brier": 0.09907369544332019,
+     "pod": 0.5454545454545454,
+     "far": 0.8571428571428571,
+     "csi": 0.1276595744680851,
+     "climatology_brier": 0.07384517022750281
+    },
+    "none|0": {
+     "tier": "none",
+     "lead_min": 0,
+     "n": 168,
+     "n_pos": 15,
+     "auc": 0.5912854030501089,
+     "brier": 0.15553405746008547,
+     "pod": 0.8666666666666667,
+     "far": 0.8645833333333334,
+     "csi": 0.1326530612244898,
+     "climatology_brier": 0.08131377551020406
+    },
+    "none|15": {
+     "tier": "none",
+     "lead_min": 15,
+     "n": 137,
+     "n_pos": 11,
+     "auc": 0.5,
+     "brier": 0.15647412452467585,
+     "pod": 0.6363636363636364,
+     "far": 0.9135802469135802,
+     "csi": 0.08235294117647059,
+     "climatology_brier": 0.07384517022750281
+    }
+   }
+  },
+  "downburst": {
+   "threshold": 0.08,
+   "n_train_pos": 255,
+   "n_test_pos": 103,
+   "n_test": 305,
+   "by_tier_and_lead": {
+    "full|0": {
+     "tier": "full",
+     "lead_min": 0,
+     "n": 168,
+     "n_pos": 54,
+     "auc": 0.7015919428200131,
+     "brier": 0.22217436005653,
+     "pod": 0.9259259259259259,
+     "far": 0.6212121212121212,
+     "csi": 0.36764705882352944,
+     "climatology_brier": 0.21811224489795925
+    },
+    "full|15": {
+     "tier": "full",
+     "lead_min": 15,
+     "n": 137,
+     "n_pos": 49,
+     "auc": 0.7481447124304268,
+     "brier": 0.20236313708002424,
+     "pod": 0.9591836734693877,
+     "far": 0.5803571428571429,
+     "csi": 0.41228070175438597,
+     "climatology_brier": 0.22974052959667537
+    },
+    "partial|0": {
+     "tier": "partial",
+     "lead_min": 0,
+     "n": 168,
+     "n_pos": 54,
+     "auc": 0.7204353476283301,
+     "brier": 0.21204741755024864,
+     "pod": 0.9259259259259259,
+     "far": 0.609375,
+     "csi": 0.3787878787878788,
+     "climatology_brier": 0.21811224489795925
+    },
+    "partial|15": {
+     "tier": "partial",
+     "lead_min": 15,
+     "n": 137,
+     "n_pos": 49,
+     "auc": 0.7655380333951762,
+     "brier": 0.19297020943660412,
+     "pod": 0.9591836734693877,
+     "far": 0.5877192982456141,
+     "csi": 0.4051724137931034,
+     "climatology_brier": 0.22974052959667537
+    },
+    "none|0": {
+     "tier": "none",
+     "lead_min": 0,
+     "n": 168,
+     "n_pos": 54,
+     "auc": 0.6786874593892137,
+     "brier": 0.2290479541174872,
+     "pod": 0.9259259259259259,
+     "far": 0.6503496503496503,
+     "csi": 0.3401360544217687,
+     "climatology_brier": 0.21811224489795925
+    },
+    "none|15": {
+     "tier": "none",
+     "lead_min": 15,
+     "n": 137,
+     "n_pos": 49,
+     "auc": 0.7372448979591836,
+     "brier": 0.20654615882363728,
+     "pod": 0.9591836734693877,
+     "far": 0.6147540983606558,
+     "csi": 0.3790322580645161,
+     "climatology_brier": 0.22974052959667537
+    }
+   },
+   "badge": "PROXY",
+   "gust_band": {
+    "p25_kt": 50.0,
+    "p50_kt": 52.0,
+    "p75_kt": 55.0,
+    "n": 255,
+    "note": "Observed wind at training reports the proxy flagged \u2014 a band, not a measured velocity"
+   }
+  },
+  "cloudburst": {
+   "relation": "R = ((VIL / (3.44e-6 \u00b7 D))^(7/4) / 200)^(1/1.6), D = 8 km column (Greene & Clark 1972; Marshall-Palmer Z-R)",
+   "uncertainty": "lognormal, \u00d7/\u00f7 2 at 90 %",
+   "threshold_mm_1h": 100.0,
+   "area_km2": 25,
+   "verification": "see hazards_fields.json (forecast vs VIL-derived accumulation; no gauge/MRMS truth on SEVIR)"
+  }
+ }
+}

@@ -168,3 +168,49 @@ def lineage_image(cells: dict[int, Cell], out_path, title: str = ""):
     ax.set_yticks([]); ax.set_xlabel("minutes from event start")
     ax.set_title(title or "Storm lineage (orange = merge/split links)")
     fig.tight_layout(); fig.savefig(out_path, dpi=90); plt.close(fig)
+
+
+def match_error(x_in: np.ndarray, obs: np.ndarray, fcst: np.ndarray,
+                velocity: np.ndarray | None = None,
+                min_area_km2: float = MIN_AREA_KM2) -> dict:
+    """Per-lead centroid error for the cells alive when the forecast was made.
+
+    `x_in` is the observed input the forecast came from, `obs` what followed and
+    `fcst` what was forecast, all in pixel units and all on the same grid. Both
+    sequences are tracked with the input frames in front and the same motion
+    field, so a cell ID at the analysis frame is the same storm in both: new IDs
+    allocated after that frame are larger than every ID present at it, so they
+    cannot collide. A cell the forecast has dropped is left out of `errors` and
+    counted in `alive` only, so losing a storm cannot improve the error.
+
+    Returns `errors` (one list of (cell id, error in pixels, forecast-to-observed
+    area ratio) per lead) and `alive` (observed cells still tracked at that lead).
+    The area ratio is what keeps the error readable: a smooth forecast merges
+    neighbouring cells, the merged blob inherits the ID under the merge rule above,
+    and its centroid sits between the cells it swallowed — so a large error with a
+    large area ratio is a merge, not a displacement.
+    """
+    if velocity is None:
+        from pipeline.baselines import _motion
+        velocity = _motion(x_in[: min(len(x_in), 4)])
+    pos = lambda cells: {cid: {p["t"]: p for p in c.track} for cid, c in cells.items()}
+    o = pos(track(np.concatenate([x_in, obs]), velocity)[0])
+    f = pos(track(np.concatenate([x_in, fcst]), velocity)[0])
+    a = len(x_in) - 1
+    ids = [cid for cid, p in o.items() if a in p and p[a]["area"] >= min_area_km2]
+    errors: list[list[tuple[int, float, float]]] = []
+    alive: list[int] = []
+    for i in range(len(fcst)):
+        t, row, n = a + 1 + i, [], 0
+        for cid in ids:
+            seen = o[cid].get(t)
+            if seen is None:                     # the storm itself is gone
+                continue
+            n += 1
+            got = f.get(cid, {}).get(t)
+            if got is not None:
+                row.append((cid, float(np.hypot(got["y"] - seen["y"], got["x"] - seen["x"])),
+                            float(got["area"]) / max(float(seen["area"]), 1.0)))
+        errors.append(row)
+        alive.append(n)
+    return {"errors": errors, "alive": alive, "analysis_cells": ids}

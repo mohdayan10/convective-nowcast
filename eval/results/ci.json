@@ -1,0 +1,200 @@
+{
+ "kind": "ci",
+ "created_utc": "2026-10-01T14:24:40+00:00",
+ "features": [
+  "ir_min",
+  "ir_mean",
+  "cool15",
+  "cool30",
+  "cold_frac",
+  "wv_ir_max",
+  "ot_index",
+  "vil_max",
+  "vil_growth",
+  "lightning"
+ ],
+ "candidate_rule": "16 km patch with VIL < 16 in it and its 8 neighbours",
+ "label_rule": "VIL >= 74 in the patch within H minutes",
+ "tier_source": "SIMULATED (see tier_shares.json)",
+ "n_events": {
+  "train": 680,
+  "val": 120,
+  "test": 218
+ },
+ "conditions": {
+  "goes_2km_5min": {
+   "satellite_km": 2,
+   "cadence_min": 5,
+   "n_train_rows": 2745848,
+   "horizons": {
+    "15": {
+     "threshold": 0.95,
+     "hits": 1648,
+     "misses": 1622,
+     "false_alarms": 223210,
+     "pod": 0.5039755351681957,
+     "far": 0.9926709300981064,
+     "csi": 0.0072765807135287885,
+     "median_lead_before_echo_min": 55.0,
+     "n_initiations_flagged": 6770,
+     "n_candidates": 912947,
+     "n_positive": 3270,
+     "feature_gain": {
+      "ir_min": 37722962223.0,
+      "ir_mean": 0.0,
+      "cool15": 15810534788.0,
+      "cool30": 7882765064.0,
+      "cold_frac": 0.0,
+      "wv_ir_max": 296750056869.0,
+      "ot_index": 27627737707.0,
+      "vil_max": 36287731915.0,
+      "vil_growth": 25888605.0,
+      "lightning": 0.0
+     }
+    },
+    "30": {
+     "threshold": 0.6699999999999999,
+     "hits": 1099,
+     "misses": 8909,
+     "false_alarms": 10014,
+     "pod": 0.10981215027977619,
+     "far": 0.9011068118419868,
+     "csi": 0.054889621416441915,
+     "median_lead_before_echo_min": 45.0,
+     "n_initiations_flagged": 1086,
+     "n_candidates": 912947,
+     "n_positive": 10008,
+     "feature_gain": {
+      "ir_min": 5406998.0,
+      "ir_mean": 0.0,
+      "cool15": 737327.0,
+      "cool30": 5098582.0,
+      "cold_frac": 0.0,
+      "wv_ir_max": 1907436.0,
+      "ot_index": 14062315.0,
+      "vil_max": 517584.0,
+      "vil_growth": 2583784.0,
+      "lightning": 394056.0
+     }
+    },
+    "60": {
+     "threshold": 0.09,
+     "hits": 4829,
+     "misses": 31450,
+     "false_alarms": 30613,
+     "pod": 0.13310730725764217,
+     "far": 0.8637492240844196,
+     "csi": 0.07219099443879687,
+     "median_lead_before_echo_min": 50.0,
+     "n_initiations_flagged": 2686,
+     "n_candidates": 912947,
+     "n_positive": 36279,
+     "feature_gain": {
+      "ir_min": 1050405.896484375,
+      "ir_mean": 0.0,
+      "cool15": 846140.3984375,
+      "cool30": 602995.298828125,
+      "cold_frac": 0.0,
+      "wv_ir_max": 181612.302734375,
+      "ot_index": 2167551.0,
+      "vil_max": 51943.5,
+      "vil_growth": 54657.5,
+      "lightning": 24499.69921875
+     }
+    }
+   }
+  },
+  "insat_like_4km_15min": {
+   "satellite_km": 4,
+   "cadence_min": 15,
+   "n_train_rows": 2745848,
+   "horizons": {
+    "15": {
+     "threshold": 0.8999999999999999,
+     "hits": 1630,
+     "misses": 1640,
+     "false_alarms": 228547,
+     "pod": 0.4984709480122324,
+     "far": 0.992918493159612,
+     "csi": 0.007031408395415349,
+     "median_lead_before_echo_min": 55.0,
+     "n_initiations_flagged": 6533,
+     "n_candidates": 912947,
+     "n_positive": 3270
+    },
+    "30": {
+     "threshold": 0.6599999999999999,
+     "hits": 1459,
+     "misses": 8549,
+     "false_alarms": 11030,
+     "pod": 0.1457833733013589,
+     "far": 0.8831771959324205,
+     "csi": 0.06935069873562126,
+     "median_lead_before_echo_min": 45.0,
+     "n_initiations_flagged": 1242,
+     "n_candidates": 912947,
+     "n_positive": 10008
+    },
+    "60": {
+     "threshold": 0.09,
+     "hits": 4336,
+     "misses": 31943,
+     "false_alarms": 26513,
+     "pod": 0.11951817856059979,
+     "far": 0.8594443904178417,
+     "csi": 0.06905338259650912,
+     "median_lead_before_echo_min": 50.0,
+     "n_initiations_flagged": 2352,
+     "n_candidates": 912947,
+     "n_positive": 36279
+    }
+   }
+  },
+  "insat_like_4km_30min": {
+   "satellite_km": 4,
+   "cadence_min": 30,
+   "n_train_rows": 2745848,
+   "horizons": {
+    "15": {
+     "threshold": 0.8899999999999999,
+     "hits": 1906,
+     "misses": 1364,
+     "false_alarms": 240404,
+     "pod": 0.5828746177370031,
+     "far": 0.9921340431678428,
+     "csi": 0.007821926015906498,
+     "median_lead_before_echo_min": 55.0,
+     "n_initiations_flagged": 6371,
+     "n_candidates": 912947,
+     "n_positive": 3270
+    },
+    "30": {
+     "threshold": 0.6699999999999999,
+     "hits": 1257,
+     "misses": 8751,
+     "false_alarms": 9888,
+     "pod": 0.12559952038369304,
+     "far": 0.8872139973082099,
+     "csi": 0.06317852834740652,
+     "median_lead_before_echo_min": 45.0,
+     "n_initiations_flagged": 1064,
+     "n_candidates": 912947,
+     "n_positive": 10008
+    },
+    "60": {
+     "threshold": 0.09,
+     "hits": 4370,
+     "misses": 31909,
+     "false_alarms": 25624,
+     "pod": 0.120455359850051,
+     "far": 0.8543041941721677,
+     "csi": 0.07059431691517373,
+     "median_lead_before_echo_min": 50.0,
+     "n_initiations_flagged": 2153,
+     "n_candidates": 912947,
+     "n_positive": 36279
+    }
+   }
+  }
+ }
+}

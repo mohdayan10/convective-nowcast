@@ -165,13 +165,244 @@ def eval_model(limit: int | None, n_members: int = 10) -> dict:
     return out
 
 
+def eval_modes(limit: int | None, n_members: int = 10) -> dict:
+    """Radar-denied skill: the same model scored over the test split with inputs removed.
+
+    `eval_model`'s per-tier breakdown answers a different question — it scores one
+    forecast over the pixels radar can and cannot see. This re-runs the forecast
+    with the radar input actually taken away, which is what the console's coverage
+    switch does to a single event, and measures it over the whole split.
+
+    The extrapolation baselines are scored on the same denied input. They collapse,
+    which is the point: with no radar there is nothing to extrapolate, so the
+    comparison that matters for a radar gap is the model against zero skill, not
+    the model against optical flow.
+    """
+    from coverage.tiers import TIER_GRID, TierSample, apply_tiers, sample_tiers
+    from pipeline.infer import load_model, predict
+    from pipeline.train import N_IN, N_OUT, splits
+
+    c, f = cfg()["verification"], cfg()["frames"]
+    ids = splits()["test"][:limit] if limit else splits()["test"]
+    if not ids:
+        raise SystemExit("no cached test events — run pipeline.cache")
+    start = 49 - N_IN - N_OUT - 12
+    mk = lambda: Accumulator(c["vil_thresholds"], c["fss_thresholds"], c["fss_scales_km"], N_OUT)
+    # "all" is the simulated coverage map, the same sample eval_model scores on;
+    # "noradar" and "satonly" are the modes the console offers.
+    modes = ("all", "noradar", "satonly")
+    acc = {m: mk() for m in modes}
+    # One extrapolation reference per mode, on the input that mode leaves behind.
+    base_acc = {m: mk() for m in modes}
+    seconds = {m: 0.0 for m in modes}
+    t0 = time.time()
+    for k, eid in enumerate(ids):
+        seed = zlib.crc32(eid.encode())
+        ts = sample_tiers(np.random.default_rng(seed + 1))
+        blind = TierSample(np.zeros_like(ts.tier),
+                           np.full(ts.tier.shape, np.inf, np.float32), "none")
+        vil = vil_frames(load_event(eid)["vil"])
+        x, y = vil[start:start + N_IN], vil[start + N_IN:start + N_IN + N_OUT]
+        for m in modes:
+            tier = ts if m == "all" else blind
+            t1 = time.time()
+            pred = predict(eid, start, tier, np.random.default_rng(seed), n_members,
+                           drop_lightning=(m == "satonly"))["vil"]
+            seconds[m] += time.time() - t1
+            acc[m].add(pred, y)
+            xm, _ = apply_tiers(x, tier, np.random.default_rng(0))
+            base_acc[m].add(baselines.optical_flow(xm, N_OUT, baselines._motion(xm)), y)
+        print(f"  {k + 1}/{len(ids)} {eid} ({ts.source}) {time.time() - t0:.0f}s", flush=True)
+
+    _, meta = load_model()
+    out = {
+        "kind": "modes",
+        "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "git": _git(),
+        "host": platform.node(),
+        "question": ("What does the forecast lose when an input is removed? Each mode is a "
+                     "separate forward pass with that input denied, scored against the same "
+                     "observed VIL over the same events."),
+        "modes": {
+            "all": "the simulated coverage map: radar damped where the beam is high",
+            "noradar": "every pixel tier 0 — the modality-dropout path the model was trained on",
+            "satonly": "tier 0 and the lightning channel blanked as well",
+        },
+        "data": {
+            "dataset": "SEVIR", "split": "test (time_utc >= %s)" % cfg()["sevir"]["split_date"],
+            "n_events": len(ids), "event_ids": ids, "input_frames": N_IN,
+            "window_start_frame": start,
+            "units": "VIL pixel value 0-255; model trained at 2 km, upsampled to 1 km for scoring",
+        },
+        "model": {"architecture": "TierUNet", "best_epoch": meta.get("epoch"),
+                  "mc_dropout_members": n_members},
+        "coverage": {
+            "tier_source": "m1-grid" if TIER_GRID.exists()
+                           else "SIMULATED radar networks (M1 tier grid not available)",
+        },
+        "thresholds": c["vil_thresholds"],
+        "fss_scales_km": c["fss_scales_km"],
+        "latency": {
+            "what": ("Wall-clock seconds for one forward pass of %d MC-dropout members over a "
+                     "384 km tile, 12 lead frames, on %s." % (n_members, _device())),
+            "seconds_per_event": {m: seconds[m] / len(ids) for m in modes},
+        },
+        "methods": {},
+        "baseline": {},
+    }
+    for m in modes:
+        out["methods"][m] = acc[m].summary(f["step_min"])
+        out["baseline"][m] = base_acc[m].summary(f["step_min"])
+    out["baseline_note"] = ("Optical flow on the same denied input, as a floor. With radar "
+                            "removed its input is empty, so it forecasts nothing and scores "
+                            "zero; any skill the model keeps in that column comes from "
+                            "satellite and lightning.")
+    return out
+
+
+def eval_track(limit: int | None, n_members: int = 10) -> dict:
+    """Object track error: how far a forecast puts a storm from where it went.
+
+    Cells are tracked through the forecast sequence and through the observation
+    with the same detector and the same motion field, and both sequences carry the
+    same observed input frames in front, so a cell ID at the analysis frame is the
+    same storm in both. The error for that ID at a lead is the distance between
+    its forecast centroid and its observed centroid at the same valid time. A cell
+    the forecast has dropped is not scored — it is counted in the match share
+    instead, because a method that forecasts only the one cell it is sure of would
+    otherwise post the best error.
+    """
+    from coverage.tiers import TIER_GRID, apply_tiers, sample_tiers
+    from pipeline.infer import load_model, predict
+    from pipeline.tracking import MIN_AREA_KM2, THRESH_KGM2, match_error
+    from pipeline.train import N_IN, N_OUT, splits
+
+    f = cfg()["frames"]
+    ids = splits()["test"][:limit] if limit else splits()["test"]
+    if not ids:
+        raise SystemExit("no cached test events — run pipeline.cache")
+    start = 49 - N_IN - N_OUT - 12
+    methods = ("model", "optical_flow", "persistence")
+    err: dict[str, list[list[float]]] = {m: [[] for _ in range(N_OUT)] for m in methods}
+    ratio: dict[str, list[list[float]]] = {m: [[] for _ in range(N_OUT)] for m in methods}
+    kept = {m: np.zeros(N_OUT) for m in methods}     # the forecast still has the cell
+    alive = np.zeros(N_OUT)                          # the observation still has it
+    n_cells, n_events = 0, 0
+    t0 = time.time()
+    for k, eid in enumerate(ids):
+        seed = zlib.crc32(eid.encode())
+        ts = sample_tiers(np.random.default_rng(seed + 1))
+        vil = vil_frames(load_event(eid)["vil"])
+        x, y = vil[start:start + N_IN], vil[start + N_IN:start + N_IN + N_OUT]
+        xm, _ = apply_tiers(x, ts, np.random.default_rng(0))
+        v = baselines._motion(xm)
+        fields = {
+            "model": predict(eid, start, ts, np.random.default_rng(seed), n_members)["vil"],
+            "optical_flow": baselines.optical_flow(xm, N_OUT, v),
+            "persistence": baselines.persistence(xm, N_OUT),
+        }
+        res = {m: match_error(xm, y, fields[m], v) for m in methods}
+        n_here = len(res["model"]["analysis_cells"])
+        if not n_here:
+            print(f"  {k + 1}/{len(ids)} {eid} no cell at the analysis frame", flush=True)
+            continue
+        n_cells += n_here
+        n_events += 1
+        alive += np.array(res["model"]["alive"], float)
+        for m in methods:
+            for i, row in enumerate(res[m]["errors"]):
+                kept[m][i] += len(row)
+                err[m][i] += [e for _, e, _ in row]
+                ratio[m][i] += [r for _, _, r in row]
+        print(f"  {k + 1}/{len(ids)} {eid} ({ts.source}) {n_here} cells"
+              f" {time.time() - t0:.0f}s", flush=True)
+
+    _, meta = load_model()
+    q = lambda e, s: None if not e else round(float(np.percentile(e, s)), 2)
+    out = {
+        "kind": "track_error",
+        "created_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "git": _git(),
+        "host": platform.node(),
+        "question": ("How far from the storm does the forecast put it? Centroid distance "
+                     "between a tracked cell's forecast position and its observed position "
+                     "at the same valid time, over the test split."),
+        "method": (f"Cells are connected components of VIL >= {THRESH_KGM2} kg/m2 smoothed, "
+                   f"at least {MIN_AREA_KM2} km2, tracked by advected overlap (pipeline.tracking). "
+                   "Forecast and observation are tracked as one sequence each, both beginning "
+                   "with the same observed input frames, so IDs at the analysis frame match."),
+        "data": {
+            "dataset": "SEVIR", "split": "test (time_utc >= %s)" % cfg()["sevir"]["split_date"],
+            "n_events": n_events, "n_events_attempted": len(ids),
+            "n_analysis_cells": n_cells, "input_frames": N_IN,
+            "window_start_frame": start, "km_per_px": 1,
+        },
+        "model": {"architecture": "TierUNet", "best_epoch": meta.get("epoch"),
+                  "mc_dropout_members": n_members},
+        "coverage": {"tier_source": "m1-grid" if TIER_GRID.exists()
+                     else "SIMULATED radar networks (M1 tier grid not available)"},
+        "lead_min": [(i + 1) * f["step_min"] for i in range(N_OUT)],
+        "observed_cells_alive": [int(n) for n in alive],
+        "methods": {},
+        "note": ("Read the three columns together. Matched share is the fraction of "
+                 "still-living observed cells the forecast also has, and the error is the "
+                 "median over those: persistence keeps every cell but leaves it where it was, "
+                 "so its error is the distance the storm travelled. The area ratio is the "
+                 "matched forecast cell's area over the observed cell's — well above 1 means "
+                 "the forecast has merged neighbouring storms into one object, which inherits "
+                 "the ID and carries a centroid between them, so part of the error it reports "
+                 "is a merge rather than a displacement."),
+    }
+    for m in methods:
+        out["methods"][m] = {
+            "median_error_km": [q(e, 50) for e in err[m]],
+            "p90_error_km": [q(e, 90) for e in err[m]],
+            "mean_error_km": [None if not e else round(float(np.mean(e)), 2) for e in err[m]],
+            "n_scored": [len(e) for e in err[m]],
+            "median_area_ratio": [q(r, 50) for r in ratio[m]],
+            "matched_share": [None if alive[i] == 0 else round(float(kept[m][i] / alive[i]), 3)
+                              for i in range(N_OUT)],
+        }
+    return out
+
+
+def _device() -> str:
+    try:
+        import torch
+        return torch.cuda.get_device_name(0) if torch.cuda.is_available() else "CPU"
+    except Exception:
+        return "unknown device"
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("what", choices=["baselines", "model"])
+    ap.add_argument("what", choices=["baselines", "model", "modes", "track"])
     ap.add_argument("--selection", default="selection_dev.csv")
     ap.add_argument("--limit", type=int)
     ap.add_argument("--leads", type=int, default=max(cfg()["frames"]["leads"]))
     a = ap.parse_args(argv)
+    if a.what == "track":
+        res = eval_track(a.limit)
+        out = path("results") / "track.json"
+        out.write_text(json.dumps(res, indent=1, allow_nan=True))
+        print(f"wrote {out.relative_to(ROOT)}")
+        for m, r in res["methods"].items():
+            print(f"  {m:13s} median error km T+30m {r['median_error_km'][5]}"
+                  f" T+60m {r['median_error_km'][11]}"
+                  f" | matched {r['matched_share'][11]}"
+                  f" | area ratio {r['median_area_ratio'][11]} at T+60m")
+        return
+    if a.what == "modes":
+        res = eval_modes(a.limit)
+        out = path("results") / "modes.json"
+        out.write_text(json.dumps(res, indent=1, allow_nan=True))
+        print(f"wrote {out.relative_to(ROOT)}")
+        for m, r in res["methods"].items():
+            mc, bc = r["mean_csi"], res["baseline"][m]["mean_csi"]
+            print(f"  {m:8s} model mean CSI T+30m {mc[5]:.3f} T+60m {mc[11]:.3f}"
+                  f" | optical flow T+60m {bc[11]:.3f}"
+                  f" | {res['latency']['seconds_per_event'][m]:.2f} s/event")
+        return
     if a.what == "model":
         res = eval_model(a.limit)
         out = path("results") / "model.json"

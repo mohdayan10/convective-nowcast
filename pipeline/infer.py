@@ -35,11 +35,25 @@ def downsample_tiers(ts: TierSample) -> TierSample:
 
 
 def predict(event_id: str, start: int, ts: TierSample, rng: np.random.Generator,
-            n_members: int = 10, thresholds=(16, 74, 133, 160, 181, 219)) -> dict:
+            n_members: int = 10, thresholds=(16, 74, 133, 160, 181, 219),
+            drop_lightning: bool = False) -> dict:
+    """`ts` carries the radar coverage the model is allowed to see, so an all-tier-0
+    sample gives a genuine radar-denied forecast through the modality-dropout path
+    the model was trained on. `drop_lightning` additionally blanks the lightning
+    channel, leaving satellite only. Lightning normalises to itself (NORM["lght"]
+    is (0, 1)), so "no flashes" is exactly 0."""
     model, _ = load_model()
     arr = np.load(cache_path(event_id), mmap_mode="r")[start:start + N_IN].astype(np.float32)
+    if drop_lightning:
+        arr = arr.copy()
+        arr[:, 3] = 0.0
     x, _ = make_input(arr, downsample_tiers(ts), rng)
     xt = torch.from_numpy(x)[None].to(DEV)
+    # The dropout masks come from torch's global generator, so without this the same
+    # call twice gives two different ensembles — on the track-error metric that was a
+    # 3 km spread between runs. Seeding it from the caller's generator makes every
+    # evaluation and every exported package reproducible from its event id.
+    torch.manual_seed(int(rng.integers(2 ** 63)))
     vil, lg = mc_dropout(model, xt, n_members)            # [n, 1, 12, 192, 192]
     vil = F.interpolate(vil[:, 0] * 255.0, scale_factor=2, mode="bilinear", align_corners=False)
     lg = F.interpolate(torch.expm1(lg[:, 0]).clamp(min=0) / 4.0, scale_factor=2, mode="bilinear", align_corners=False)
